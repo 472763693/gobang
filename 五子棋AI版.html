@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+	<title>五子棋</title>
+	<style type="text/css">
+		*{margin: 0;padding:0;}
+		#canvas{display: block;margin: 50px auto;border:3px solid #000;background-color:#f0f0f0}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="500px" height="500px"></canvas>
+</body>
+</html>
+<script type="text/javascript">
+	"use strict"
+	var arr = [
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+		[0,0,0,0,0,0,0,0,0,0,],
+	]
+	//赢法
+	var wins = [];
+	var myyin = [];
+	var cyin = [];
+	for(let i=1;i<10;i++){
+		wins[i] = [];
+		myyin[i] = [];
+		cyin[i] = [];
+		for(let j=1;j<10;j++){
+			wins[i][j] = [];
+			myyin[i][j] = 0;
+			cyin[i][j] = 0;
+		};
+	};
+
+
+	var count = 0;
+	for(let i=1;i<6;i++){
+		for(let j=1;j<6;j++){
+			for(let k=0;k<5;k++){
+				wins[i+k][j+k][count] = true
+			};
+			count++;
+		};	
+	};
+
+	for(let i=5;i<10;i++){
+		for(let j=1;j<6;j++){
+			for(let k=0;k<5;k++){
+				wins[i-k][j+k][count] = true;
+			};
+			count++;
+		};		
+	};
+
+	for(let i=1;i<6;i++){
+		for(let j=1;j<10;j++){
+			for(let k=0;k<5;k++){
+				wins[i+k][j][count] = true
+			};
+			count++
+		};		
+	};
+
+	for(let i=1;i<10;i++){
+		for(let j=1;j<6;j++){
+			for(let k=0;k<5;k++){
+				wins[i][j+k][count] = true
+			};
+			count++
+		};	
+	};
+
+
+	var canvas = document.querySelector("#canvas");
+	var c = canvas.getContext("2d");
+	window.addEventListener("load",function(){
+		for(let i=1;i<10;i++){
+			c.save();
+			c.strokeStyle = "#505050"
+			c.moveTo(i*50,0);
+			c.lineTo(i*50,500);
+			c.stroke()
+			c.moveTo(0,i*50);
+			c.lineTo(500,i*50);
+			c.stroke()
+			c.restore();
+		};
+	});
+
+	var color = false;
+	var position = [];
+	for(let i=1;i<10;i++){
+		position[i] = [];
+		for(let j=1;j<10;j++){
+			position[i][j] = 0;
+		}
+	};
+
+	canvas.addEventListener("click",function(evt){
+		var x,y;
+		let e = evt || window.event;
+		if(e.layerX){
+			x = e.layerX;
+			y = e.layerY;
+		}else{
+			x = e.offsetX;
+			y = e.offsetY;
+		};
+
+		x = Math.round(x/50);
+		y = Math.round(y/50);
+
+
+
+		draw(x,y)
+		
+		if(color){
+			AI()
+		}
+	});
+
+	function draw(x,y){
+		if(x==0 || x==10 || y==0 || y==10){
+			return;
+		};
+
+		if(position[x][y]==1){
+			return;
+		}
+		c.save();
+		c.beginPath();
+
+		var startColor,endColor;
+		
+		if(color){
+			startColor = "#505050";
+			endColor = "#000";
+		}else{
+			startColor = "#fff";
+			endColor = "#d1d1d1";
+		}
+
+		let grd = c.createRadialGradient(x*50,y*50,1,x*50,y*50,20);
+		grd.addColorStop(0,startColor);
+		grd.addColorStop(1,endColor);
+		c.fillStyle = grd;
+		c.arc(x*50,y*50,20,0,2*Math.PI);
+		c.fill();
+		c.restore();
+		end(x,y)	
+		arr[x][y] = 1
+
+	}
+
+	var mywin = [];
+	var youwin = [];
+	for(let i=0;i<count;i++){
+		mywin[i] = 0;
+		youwin[i] = 0;
+	};
+
+
+
+	function end(x,y){
+		
+		position[x][y] = 1;
+		for(let i=0;i<count;i++){
+			if(wins[x][y][i]){
+				if(color){
+					mywin[i]++;
+					youwin[i] = 6;
+
+				}else{
+					youwin[i]++;
+					mywin[i]= 6;
+				}
+				//console.log(youwin[i].z)
+				if(mywin[i]==5){
+					alert("电脑赢了");
+					location.reload()
+				};
+				if(youwin[i]==5){
+					alert("你赢了");
+					location.reload()
+				};
+
+			};
+		};
+		color = !color;
+	};
+
+	function AI(){
+		
+		for(let i=1;i<10;i++){
+			for(let j=1;j<10;j++){
+				for(let k=0;k<count;k++){
+					if(wins[i][j][k]){
+						switch(mywin[k]){
+							case 1:myyin[i][j] += 100;	
+							break;
+							case 2:myyin[i][j] += 300;	
+							break;
+							case 3:myyin[i][j] += 3000;	
+							break;
+							case 4:myyin[i][j] += 1000000;	
+							break;
+						}
+						switch(youwin[k]){
+							case 1:cyin[i][j] += 100;	
+							break;
+							case 2:cyin[i][j] += 300;	
+							break;
+							case 3:cyin[i][j] += 8000;	
+							break;
+							case 4:cyin[i][j] += 10000;	
+							break;
+						}
+							
+					}
+				}
+			}
+		}
+		var yin = 0;
+		var yinx = 1;
+		var yiny = 1;
+		for(let i=1;i<10;i++){
+			for(let j=1;j<10;j++){
+				//if()
+				if(yin == 0){
+					yin = myyin[i][j] + cyin[i][j];
+				}else{
+					if(arr[i][j]==0){
+						if(yin < myyin[i][j] + cyin[i][j]){
+							yin = myyin[i][j] + cyin[i][j];
+							yinx = i;
+							yiny = j;
+						}						
+					}
+
+				}
+			}
+		}	
+		draw(yinx,yiny)
+		
+	}
+</script>
